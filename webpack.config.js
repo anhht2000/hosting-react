@@ -1,51 +1,61 @@
-const {resolve} = require('path');
-const webpack = require('webpack');
-const validate = require('webpack-validator');
-const {getIfUtils, removeEmpty} = require('webpack-config-utils');
+const { resolve } = require("path");
+const webpack = require("webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-module.exports = env => {
-  const {ifProd, ifNotProd} = getIfUtils(env)
+module.exports = (env = {}) => {
+  const isProd = env.production || process.env.NODE_ENV === "production";
 
-  return validate({
-    entry: './index.js',
+  return {
+    entry: "./index.js",
     context: __dirname,
     output: {
-      path: resolve(__dirname, './build'),
-      filename: 'bundle.js',
-      publicPath: '/build/',
-      pathinfo: ifNotProd(),
+      path: resolve(__dirname, "./build"),
+      filename: "bundle.js",
+      publicPath: "/",
     },
-    devtool: ifProd('source-map', 'eval'),
+    mode: isProd ? "production" : "development",
+    devtool: isProd ? "source-map" : "eval",
     devServer: {
       port: 8080,
-      historyApiFallback: true
+      historyApiFallback: true,
+      static: {
+        directory: resolve(__dirname, "public"),
+      },
+    },
+    resolve: {
+      extensions: [".js", ".jsx"],
     },
     module: {
-      loaders: [
-        {test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'},
-        {test: /\.css$/, loader: 'style-loader!css-loader'},
-        {test: /(\.eot|\.woff2|\.woff|\.ttf|\.svg)/, loader: 'file-loader'},
+      rules: [
+        {
+          test: /\.(js|jsx)$/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+            options: {
+              cacheDirectory: true,
+            },
+          },
+        },
+        {
+          test: /\.css$/,
+          use: ["style-loader", "css-loader"],
+        },
+        {
+          test: /\.(eot|woff2?|ttf|svg)$/,
+          type: "asset/resource",
+        },
       ],
     },
-    plugins: removeEmpty([
-      ifProd(new webpack.optimize.DedupePlugin()),
-      ifProd(new webpack.LoaderOptionsPlugin({
-        minimize: true,
-        debug: false,
-        quiet: true,
-      })),
-      ifProd(new webpack.DefinePlugin({
-        'process.env': {
-          NODE_ENV: '"production"',
-        },
-      })),
-      ifProd(new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true,
-        compress: {
-          screw_ie8: true, // eslint-disable-line
-          warnings: false,
-        },
-      })),
-    ])
-  });
+    plugins: [
+      new webpack.DefinePlugin({
+        "process.env.NODE_ENV": JSON.stringify(isProd ? "production" : "development"),
+      }),
+      new HtmlWebpackPlugin({
+        template: "./index.html",
+        filename: "index.html",
+        inject: true,
+      }),
+    ],
+  };
 };
