@@ -39,7 +39,7 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "babel-core": "6.13.2",
-    "babel-loader": "^10.0.0",
+    "babel-loader": "8",
     "babel-plugin-istanbul": "1.0.3",
     "babel-preset-react": "6.11.1",
     "babel-preset-stage-2": "6.13.0",
